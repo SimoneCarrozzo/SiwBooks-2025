@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Book List - SiwBooks</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/books.css" />
+</head>
+
+<body>
+	<!-- Animated Background -->
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+
+	<!-- Header -->
+	<div class="header">
+		<!--		<h1><i class="fas fa-book-open"></i> Magical Library</h1>-->
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<!-- Reviews unico per tutti -->
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<!-- SEPARATO: Reviews per admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/profile/manage}">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${books}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}">Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+		<p class="header-subtitle">Discover all the treasures of our collection</p>
+	</div>
+
+	<!-- Library Container -->
+	<div class="library-container">
+		<!-- Bookshelf -->
+		<div class="bookshelf">
+			<!-- Library decorations -->
+			<div class="shelf-decoration" style="top: 20px; left: 30px;">🕯️</div>
+			<div class="shelf-decoration" style="top: 40px; right: 50px;">📜</div>
+			<div class="shelf-decoration" style="bottom: 60px; left: 60px;">🔮</div>
+			<div class="shelf-decoration" style="bottom: 40px; right: 40px;">⚗️</div>
+
+			<!-- Books Grid -->
+			<div class="books-grid">
+				<!-- Book Template -->
+				<div class="book-card" th:each="book : ${books}">
+					<!-- Admin buttons in top-right corner -->
+					<div class="admin-buttons" sec:authorize="hasAuthority('ADMIN')">
+						<a th:href="@{'/admin/books/' + ${book.id} + '/update'}" class="admin-btn edit-btn">
+							<i class="fas fa-edit"></i>
+						</a>
+						<a th:href="@{'/admin/deleteBook/' + ${book.id}}" class="admin-btn delete-btn"
+							onclick="return confirmDelete()">
+							<i class="fas fa-trash"></i>
+						</a>
+					</div>
+
+					<!-- Book Cover -->
+					<div class="book-cover-container">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}"
+							th:alt="${book.title}" class="book-cover">
+
+						<div th:unless="${book.coverImage != null}" class="no-cover">
+							<i class="fas fa-book"></i>
+						</div>
+					</div>
+
+					<!-- Book Information -->
+					<div class="book-info">
+						<h3 class="book-title" th:text="${book.title}">Book Title</h3>
+						<p class="book-year" th:text="${book.pubYear}">Publication Year</p>
+
+						<!-- Single centered action button -->
+						<div class="book-actions">
+							<a th:href="@{'/books/' + ${book.id}}" class="btn-view-details">
+								<i class="fas fa-eye"></i> View Details
+							</a>
+						</div>
+					</div>
+				</div>
+
+				<!-- End book template -->
+			</div>
+			<div sec:authorize="hasAuthority('ADMIN')" th:if="${#lists.isEmpty(books)}" class="no-books-message">
+				<p>No books available. <a class="btn btn-add-book" th:href="@{/admin/book}">Add the first book</a>
+				</p>
+			</div>
+			<div sec:authorize="hasAuthority('ADMIN')" class="add-book-container">
+				<a class="btn btn-add-book" th:href="@{/admin/book}">
+					<i class="fas fa-book"></i> Add New Book
+				</a>
+			</div>
+		</div>
+	</div>
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+
+
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; &copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script>
+		// Create particles
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+		document.addEventListener('DOMContentLoaded', createParticles);
+
+		// Initialize particles when page loads
+		document.addEventListener('DOMContentLoaded', function () {
+			createParticles();
+
+			// Add hover effect to cards
+			const bookCards = document.querySelectorAll('.book-card');
+			bookCards.forEach(card => {
+				card.addEventListener('mouseenter', function () {
+					this.style.transform = 'translateY(-15px) scale(1.03) rotateY(5deg)';
+				});
+
+				card.addEventListener('mouseleave', function () {
+					this.style.transform = 'translateY(0) scale(1) rotateY(0deg)';
+				});
+			});
+		});
+
+		// Reviews dropdown toggle
+		document.addEventListener('DOMContentLoaded', function () {
+
+
+			const reviewsBtn = document.getElementById('reviews-btn');
+			const reviewsDropdown = document.getElementById('reviews-dropdown');
+			const mainContent = document.querySelector('.main-content');
+
+			if (reviewsBtn) {
+				reviewsBtn.addEventListener('click', function () {
+					reviewsDropdown.classList.toggle('open');
+					mainContent.classList.toggle('shifted');
+				});
+			}
+
+			// Close dropdown when clicking outside
+			document.addEventListener('click', function (event) {
+				if (!reviewsBtn.contains(event.target) && !reviewsDropdown.contains(event.target)) {
+					reviewsDropdown.classList.remove('open');
+					mainContent.classList.remove('shifted');
+				}
+				console.log('Dropdown opened');
+				console.log('Books found:', document.querySelectorAll('.review-item').length);
+			});
+		});
+
+		// Reviews Carousel
+		let reviewsCurrentIndex = 0;
+		const reviewsContainer = document.getElementById('reviews-container');
+		const reviewItems = document.querySelectorAll('.review-item');
+		const totalReviewItems = reviewItems.length;
+
+		function updateReviewsCarousel() {
+			const translateX = -reviewsCurrentIndex * (280);
+			reviewsContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		document.getElementById('arrow-left').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+		document.getElementById('arrow-right').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+
+		// Stylized delete confirmation
+		function confirmDelete() {
+			return confirm('🔮 Are you sure you want to remove this book from the magical library?\n\nThis action cannot be undone!');
+		}
+
+
+	</script>
+</body>
+
+</html>

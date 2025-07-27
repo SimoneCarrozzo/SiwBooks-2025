@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${author.name + ' ' + author.surname}">Author Details</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/author.css" />
+</head>
+
+<body>
+	<!-- Particles Background -->
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+
+	<!-- Header -->
+	<header>
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<!-- Reviews unico per tutti -->
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<!-- SEPARATO: Reviews per admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/profile/manage}">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${allbooks}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}">Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+	</header>
+
+	<!-- Main Content -->
+	<div class="main-container">
+		<!-- Author Section -->
+		<div class="author-section">
+			<!-- Author Information -->
+			<div class="author-info">
+				<h1 th:text="${author.name + ' ' + author.surname}">Author Name</h1>
+
+				<div class="bio-section">
+					<h3><i class="fas fa-user-circle"></i> Biographical Information</h3>
+
+					<div class="bio-item">
+						<i class="fas fa-birthday-cake" style="color: #FFD700;"></i>
+						<strong>Born:</strong>
+						<span th:text="${#temporals.format(author.birthDate, 'MMMM dd, yyyy')}">January 1, 1900</span>
+					</div>
+
+					<div class="bio-item" th:if="${author.deathDate != null}">
+						<i style="color: #9E9E9E;">🕊️</i>
+						<strong>Died:</strong>
+						<span th:text="${#temporals.format(author.deathDate, 'MMMM dd, yyyy')}">January 1, 2000</span>
+					</div>
+
+					<div class="bio-item">
+						<i class="fas fa-flag" style="color: #28A745;"></i>
+						<strong>Nationality:</strong>
+						<span th:text="${author.nationality}">Unknown</span>
+					</div>
+				</div>
+
+				<!-- Admin Actions -->
+				<div sec:authorize="hasAuthority('ADMIN')" class="admin-actions">
+					<a th:href="@{'/admin/formUpdateAuthor/' + ${author.id}}" class="admin-btn edit">
+						<i class="fas fa-edit"></i> Edit Author
+					</a>
+					<form th:action="@{'/admin/deleteAuthor/' + ${author.id}}" method="post" style="display: inline;"
+						onsubmit="return confirm('Are you sure you want to delete this author?');">
+						<button type="submit" class="admin-btn delete">
+							<i class="fas fa-trash"></i> Delete Author
+						</button>
+					</form>
+				</div>
+			</div>
+
+			<!-- Author Photo Card -->
+			<div class="author-photo-card">
+				<!-- Author Image using ImageController -->
+				<img th:if="${author.image != null}" th:src="@{'/author/image/' + ${author.id}}"
+					th:alt="${author.name + ' ' + author.surname}" class="author-photo">
+
+				<!-- Placeholder if no image -->
+				<div th:unless="${author.image != null}" class="no-photo">
+					<i class="fas fa-user"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Books Section -->
+		<div class="books-section">
+			<h2 class="section-title">Books by this Author</h2>
+
+			<!-- Books Carousel -->
+			<div th:if="${author.books != null and not #lists.isEmpty(author.books)}" class="books-carousel">
+				<div class="books-arrow left">
+					<i class="fas fa-chevron-left"></i>
+				</div>
+
+				<div class="books-container" id="booksContainer">
+					<div th:each="book : ${author.books}" class="book-card">
+						<!-- Book Cover using ImageController -->
+						<div class="book-cover">
+							<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}"
+								th:alt="${book.title}">
+
+							<!-- Placeholder if no cover -->
+							<div th:unless="${book.coverImage != null}" class="no-cover">
+								<i class="fas fa-book"></i>
+							</div>
+						</div>
+
+						<div class="book-info">
+							<h3 th:text="${book.title}">Book Title</h3>
+							<p>
+								<small>
+									Publication Year: <span th:text="${book.pubYear}">Year</span>
+								</small>
+							</p>
+							<a th:href="@{'/books/' + ${book.id}}" class="book-link">
+								<i class="fas fa-eye"></i> View Details
+							</a>
+						</div>
+					</div>
+				</div>
+
+				<div class="books-arrow right">
+					<i class="fas fa-chevron-right"></i>
+				</div>
+			</div>
+
+			<!-- No Books Message -->
+			<div th:if="${author.books == null or #lists.isEmpty(author.books)}" class="no-books">
+				<i class="fas fa-book-open"></i>
+				<p>This author hasn't published any books yet.</p>
+			</div>
+		</div>
+
+
+		<!-- Back Button -->
+		<div class="back-button">
+			<a th:href="@{${#authorization.expression('hasAuthority(''ADMIN'')') ? '/admin/indexAuthors' : '/authors'}}"
+				class="back-btn">
+				<i class="fas fa-arrow-left"></i>
+				<span
+					th:text="${#authorization.expression('hasAuthority(''ADMIN'')') ? 'Back to Admin Panel' : 'Back to Authors Catalog'}"></span>
+			</a>
+		</div>
+	</div>
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+
+
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; &copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+
+	<script>
+
+		// Books Carousel
+		let booksCurrentIndex = 0;
+		const booksContainer = document.getElementById('booksContainer');
+		const bookItems = document.querySelectorAll('.book-card');
+		const totalBookItems = bookItems.length;
+
+		function updateBooksCarousel() {
+			const translateX = -booksCurrentIndex * (320);
+			booksContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		// Sostituisci la funzione scrollBooks con questi event listeners
+		document.querySelector('.books-arrow.left').addEventListener('click', function () {
+			booksCurrentIndex = (booksCurrentIndex - 1 + totalBookItems) % totalBookItems;
+			updateBooksCarousel();
+		});
+
+		document.querySelector('.books-arrow.right').addEventListener('click', function () {
+			booksCurrentIndex = (booksCurrentIndex + 1) % totalBookItems;
+			updateBooksCarousel();
+		});
+
+		// Create particles
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', createParticles);
+
+		// Reviews Dropdown Toggle
+		const reviewsBtn = document.getElementById('reviews-btn');
+		const reviewsDropdown = document.getElementById('reviews-dropdown');
+		const hero = document.querySelector('.hero');
+		let isReviewsOpen = false;
+
+		reviewsBtn.addEventListener('click', function (e) {
+			e.preventDefault();
+			isReviewsOpen = !isReviewsOpen;
+
+			if (isReviewsOpen) {
+				reviewsDropdown.classList.add('open');
+				hero.classList.add('shifted');
+				reviewsBtn.classList.add('highlight');
+			} else {
+				reviewsDropdown.classList.remove('open');
+				hero.classList.remove('shifted');
+				reviewsBtn.classList.remove('highlight');
+			}
+		});
+
+		// Reviews Carousel
+		let reviewsCurrentIndex = 0;
+		const reviewsContainer = document.getElementById('reviews-container');
+		const reviewItems = document.querySelectorAll('.review-item');
+		const totalReviewItems = reviewItems.length;
+
+		function updateReviewsCarousel() {
+			const translateX = -reviewsCurrentIndex * (280);
+			reviewsContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		document.getElementById('arrow-left').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+		document.getElementById('arrow-right').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+			updateReviewsCarousel();
+		}
+		);
+
+
+	</script>
+</body>
+
+</html>

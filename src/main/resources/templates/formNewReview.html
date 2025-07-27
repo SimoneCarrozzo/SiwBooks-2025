@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/formNewReview.css" />
+	<title>Book reviews</title>
+</head>
+
+<body>
+	<!-- Particles Background -->
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+
+	<!-- Header -->
+	<header>
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<!-- Reviews unico per tutti -->
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<!-- SEPARATO: Reviews per admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/profile/manage}">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${books}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}"> Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+	</header>
+
+
+	<div class="rev-page">
+		<h2 th:text="'Review for: ' + ${book.title}"></h2>
+
+		<!-- rev Container -->
+		<div class="rev-part">
+			<!-- No rev Message -->
+			<div class="no-rev">
+				<p>No reviews yet for this book. Be the first to share your thoughts!</p>
+			</div>
+
+		</div>
+
+		<hr class="rev-divider">
+
+		<!-- Add rev Section -->
+		<div class="add-rev-section">
+			<h3>Add Your Review</h3>
+			<form th:action="@{'/books/' + ${book.id} + '/formNewReview'}" method="post" th:object="${review}"
+				class="rev-form">
+
+				<div class="form-group">
+					<label>Reviewer:</label>
+					<div class="reviewer-display" th:text="${reviewerUsername}"></div>
+				</div>
+				<div class="form-group">
+					<label>Rating:</label>
+					<div class="star-rating-input">
+						<input type="hidden" th:field="*{rating}" id="rating-value" value="1" name="rating" />
+						<div class="rating-container" id="rating-container">
+							<button type="button" class="rating-btn" id="decrease-btn">−</button>
+							<div class="stars-display" id="stars-display">
+								<span class="star empty">★</span>
+								<span class="star empty">★</span>
+								<span class="star empty">★</span>
+								<span class="star empty">★</span>
+								<span class="star empty">★</span>
+							</div>
+							<button type="button" class="rating-btn" id="increase-btn">+</button>
+						</div>
+						<div class="rating-info" id="rating-info">Select a rating (1-5 stars)</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="text">Your review:</label>
+					<textarea th:field="*{title}" class="rev-textarea-title" placeholder="Review Title"
+						required></textarea>
+					<textarea id="text" th:field="*{text}" class="rev-textarea"
+						placeholder="Share your thoughts about this book..." required></textarea>
+				</div>
+
+				<button type="submit" class="submit-rev-btn">Submit Review</button>
+			</form>
+		</div>
+
+		<a th:href="@{'/books/' + ${book.id}}" class="back-link">Back to Book</a>
+	</div>
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+
+
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; &copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+
+	<script>
+
+		// Particles Generation
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', createParticles);
+
+		// Rating system 
+		document.addEventListener('DOMContentLoaded', function () {
+			const ratingInput = document.getElementById('rating-value');
+			const starsDisplay = document.getElementById('stars-display');
+			const increaseBtn = document.getElementById('increase-btn');
+			const decreaseBtn = document.getElementById('decrease-btn');
+			const ratingInfo = document.getElementById('rating-info');
+			const ratingContainer = document.getElementById('rating-container');
+			const stars = starsDisplay.querySelectorAll('.star');
+
+			let currentRating = 1;
+			ratingInput.value = 1;
+			ratingInput.setAttribute('value', '1');
+
+			// Update stars display 
+			function updateStarsDisplay(rating, animate = true) {
+
+				if (animate) {
+					ratingContainer.classList.add('rating-changed');
+					setTimeout(() => ratingContainer.classList.remove('rating-changed'), 600);
+				}
+
+				stars.forEach((star, index) => {
+					if (index < rating) {
+						star.classList.remove('empty');
+						if (animate) {
+							star.classList.add('animate');
+							setTimeout(() => star.classList.remove('animate'), 600);
+						}
+					} else {
+						star.classList.add('empty');
+					}
+				});
+
+				// Update buttons state
+				decreaseBtn.classList.toggle('disabled', rating === 1);
+				increaseBtn.classList.toggle('disabled', rating === 5);
+
+				// Update info text
+				const ratingTexts = {
+					1: 'Poor ⭐',
+					2: 'Fair ⭐⭐',
+					3: 'Good ⭐⭐⭐',
+					4: 'Very Good ⭐⭐⭐⭐',
+					5: 'Excellent ⭐⭐⭐⭐⭐'
+				};
+				ratingInfo.textContent = `${rating} star${rating > 1 ? 's' : ''} - ${ratingTexts[rating]}`;
+				ratingInfo.style.color = '#2D1B3D';
+			}
+
+			// Increase rating
+			increaseBtn.addEventListener('click', function () {
+				if (currentRating < 5) {
+					currentRating++;
+					ratingInput.value = currentRating;
+					ratingInput.setAttribute('value', currentRating);
+					updateStarsDisplay(currentRating);
+				}
+			});
+
+			// Decrease rating
+			decreaseBtn.addEventListener('click', function () {
+				if (currentRating > 1) {
+					currentRating--;
+					ratingInput.value = currentRating;
+					ratingInput.setAttribute('value', currentRating);
+					updateStarsDisplay(currentRating);
+				}
+			});
+
+			// Initialize display
+			ratingInput.value = currentRating;
+			ratingInput.setAttribute('value', currentRating);
+			updateStarsDisplay(currentRating, false);
+		});
+
+
+		// Reviews dropdown toggle
+		document.addEventListener('DOMContentLoaded', function () {
+
+
+			const reviewsBtn = document.getElementById('reviews-btn');
+			const reviewsDropdown = document.getElementById('reviews-dropdown');
+			const mainContent = document.querySelector('.main-content');
+
+			if (reviewsBtn) {
+				reviewsBtn.addEventListener('click', function () {
+					reviewsDropdown.classList.toggle('open');
+					mainContent.classList.toggle('shifted');
+				});
+			}
+
+
+			// Reviews Carousel
+			let reviewsCurrentIndex = 0;
+			const reviewsContainer = document.getElementById('reviews-container');
+			const reviewItems = document.querySelectorAll('.review-item');
+			const totalReviewItems = reviewItems.length;
+
+			function updateReviewsCarousel() {
+				const translateX = -reviewsCurrentIndex * (280);
+				reviewsContainer.style.transform = `translateX(${translateX}px)`;
+			}
+
+			document.getElementById('arrow-left').addEventListener('click', function () {
+				reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+				updateReviewsCarousel();
+			});
+
+			document.getElementById('arrow-right').addEventListener('click', function () {
+				reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+				updateReviewsCarousel();
+			});
+
+
+			// Close dropdown when clicking outside
+			document.addEventListener('click', function (event) {
+				if (!reviewsBtn.contains(event.target) && !reviewsDropdown.contains(event.target)) {
+					reviewsDropdown.classList.remove('open');
+					mainContent.classList.remove('shifted');
+				}
+				
+			});
+		});
+
+	</script>
+</body>
+
+</html>

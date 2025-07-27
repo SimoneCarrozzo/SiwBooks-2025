@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login - SiwBooks</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<link rel="stylesheet" href="/css/formLogin.css" />
+</head>
+
+<body>
+	<!-- Animated Background Elements -->
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+
+	<div class="literary-elements">
+		<div class="floating-page" style="top: 10%; left: 5%; animation-delay: 0s;"></div>
+		<div class="floating-page" style="top: 60%; left: 10%; animation-delay: 2s;"></div>
+		<div class="floating-page" style="top: 30%; right: 8%; animation-delay: 4s;"></div>
+		<div class="floating-page" style="top: 80%; right: 15%; animation-delay: 6s;"></div>
+
+		<div class="reading-symbol" style="top: 20%; left: 80%; animation-delay: 1s;">📚</div>
+		<div class="reading-symbol" style="top: 70%; left: 5%; animation-delay: 3s;">✒️</div>
+		<div class="reading-symbol" style="top: 40%; right: 20%; animation-delay: 5s;">📖</div>
+		<div class="reading-symbol" style="top: 15%; left: 15%; animation-delay: 7s;">🖋️</div>
+	</div>
+
+	<!-- Header -->
+	<header>
+		<!--		<h1><i class="fas fa-book-open"></i> Magical Library</h1>-->
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<!-- Reviews unico per tutti -->
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<!-- SEPARATO: Reviews per admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/profile/manage">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${books}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}"> Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+	</header>
+
+
+	<!-- Loading Screen -->
+	<div class="loading" id="loading">
+		<div class="book-loader"></div>
+	</div>
+
+	<!-- Main Login Container -->
+	<div class="login-container">
+		<div class="login-card">
+			<div class="login-header">
+				<h1><i class="fas fa-book-open"></i> SiwBooks</h1>
+				<p class="subtitle">Enter your preferred books website</p>
+			</div>
+
+			<!-- Error Message -->
+			<div th:if="${param.error}" class="alert alert-danger" role="alert">
+				<i class="fas fa-exclamation-triangle"></i>
+				Invalid username or password. Please try again.
+			</div>
+
+			<!-- Success Message after Logout -->
+			<div th:if="${param.logout}" class="alert alert-success" role="alert">
+				<i class="fas fa-check-circle"></i>
+				You have been successfully logged out.
+			</div>
+
+			<!-- Login Form -->
+			<form th:action="@{/login}" method="post" class="login-form" id="loginForm">
+				<div class="form-group">
+					<label for="username">
+						<i class="fas fa-user"></i> Username
+					</label>
+					<input name="username" type="text" class="form-control" id="username"
+						placeholder="Enter your username" required autocomplete="username" />
+				</div>
+
+				<div class="form-group">
+					<label for="password">
+						<i class="fas fa-lock"></i> Password
+					</label>
+					<input name="password" type="password" class="form-control" id="password"
+						placeholder="Enter your password" required autocomplete="current-password" />
+				</div>
+
+				<div class="form-group">
+					<button type="submit" class="btn-login">
+						<i class="fas fa-sign-in-alt"></i> Enter SiwBooks
+					</button>
+				</div>
+			</form>
+
+			<div class="register-section">
+				<p>
+					<i class="fas fa-users"></i> Don't have an account? Join our literary community
+				</p>
+				<a th:href="@{/register}" class="btn-register">
+					<i class="fas fa-user-plus"></i> Sign Up
+				</a>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+
+
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; &copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+
+	<script>
+		// Create animated particles
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+		
+		document.addEventListener('DOMContentLoaded', createParticles);
+		
+		// Form submission with loading
+		document.getElementById('loginForm').addEventListener('submit', function (e) {
+			const loading = document.getElementById('loading');
+			loading.style.display = 'flex';
+
+			// Simulate some processing time for better UX
+			setTimeout(() => {
+				// The form will submit naturally
+			}, 500);
+		});
+
+		// Initialize particles on page load
+		document.addEventListener('DOMContentLoaded', function () {
+			createParticles();
+
+			// Add focus animations to form inputs
+			const inputs = document.querySelectorAll('.form-control');
+			inputs.forEach(input => {
+				input.addEventListener('focus', function () {
+					this.parentElement.style.transform = 'translateY(-2px)';
+				});
+
+				input.addEventListener('blur', function () {
+					this.parentElement.style.transform = 'translateY(0)';
+				});
+			});
+		});
+
+		// Add subtle hover effects to the login card
+		const loginCard = document.querySelector('.login-card');
+		loginCard.addEventListener('mouseenter', function () {
+			this.style.transform = 'translateY(-5px)';
+			this.style.boxShadow = '0 25px 50px rgba(45, 27, 61, 0.25), 0 0 40px rgba(255, 215, 0, 0.15)';
+		});
+
+		loginCard.addEventListener('mouseleave', function () {
+			this.style.transform = 'translateY(0)';
+			this.style.boxShadow = '0 20px 40px rgba(45, 27, 61, 0.2), 0 0 30px rgba(255, 215, 0, 0.1)';
+		});
+
+
+		// Reviews Dropdown Toggle
+		const reviewsBtn = document.getElementById('reviews-btn');
+		const reviewsDropdown = document.getElementById('reviews-dropdown');
+		const hero = document.querySelector('.hero');
+		let isReviewsOpen = false;
+
+		reviewsBtn.addEventListener('click', function (e) {
+			e.preventDefault();
+			isReviewsOpen = !isReviewsOpen;
+
+			if (isReviewsOpen) {
+				reviewsDropdown.classList.add('open');
+				hero.classList.add('shifted');
+				reviewsBtn.classList.add('highlight');
+			} else {
+				reviewsDropdown.classList.remove('open');
+				hero.classList.remove('shifted');
+				reviewsBtn.classList.remove('highlight');
+			}
+		});
+
+		// Reviews Carousel
+		let reviewsCurrentIndex = 0;
+		const reviewsContainer = document.getElementById('reviews-container');
+		const reviewItems = document.querySelectorAll('.review-item');
+		const totalReviewItems = reviewItems.length;
+
+		function updateReviewsCarousel() {
+			const translateX = -reviewsCurrentIndex * (280); // 300px width + 20px gap
+			reviewsContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		document.getElementById('arrow-left').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+		document.getElementById('arrow-right').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+			updateReviewsCarousel();
+		}
+
+		);
+
+
+	</script>
+</body>
+
+</html>

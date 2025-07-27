@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SiwBook - Digital Library</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/indexUser.css" />
+
+</head>
+
+<body>
+	<!-- Particles Background -->
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+
+	<!-- Header -->
+	<header>
+		<!--		<h1><i class="fas fa-book-open"></i> Magical Library</h1>-->
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<!-- Reviews -->
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<!-- Reviews  admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/profile/manage">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${books}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}">Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+	</header>
+
+	<!-- Hero Section -->
+	<section class="hero">
+		<div class="hero-content">
+			<h1>Welcome to Your Digital Library</h1>
+			<p>Discover new books, explore authors, and dive into the world of literature</p>
+			<a th:href="@{/books}" class="cta-button">
+				<i class="fas fa-book-open"></i> Browse our Collection
+			</a>
+		</div>
+	</section>
+
+	<!-- Featured Authors Section -->
+	<section class="carousel-section">
+		<h2 class="section-title">
+			<i class="fas fa-star"></i> Top Trending Authors
+		</h2>
+
+		<div th:if="${!#lists.isEmpty(mostProlificAuthors)}">
+			<div class="carousel-container">
+				<div class="carousel-track" id="featuredAuthorsTrack">
+					<div class="author-card" th:each="author : ${mostProlificAuthors}">
+						<!-- Author Image Section -->
+						<div class="author-image-section">
+							<img th:if="${author.image != null and author.image != ''}"
+								th:src="@{/author/image/{id}(id=${author.id})}"
+								th:alt="${author.name + ' ' + author.surname}" class="author-image">
+							<div th:unless="${author.image != null and author.image != ''}" class="author-placeholder">
+								<i class="fas fa-user"></i>
+							</div>
+						</div>
+
+						<!-- Author Info -->
+						<div class="author-info">
+							<div>
+								<h3 class="author-name" th:text="${author.name + ' ' + author.surname}">Author Name</h3>
+								<div class="book-count">
+									<i class="fas fa-book"></i> <span th:text="${#lists.size(author.books)}">0</span>
+									Books
+								</div>
+							</div>
+							<a th:href="@{/authors/{id}(id=${author.id})}" class="details-button">
+								<i class="fas fa-eye"></i>
+								View Author
+							</a>
+						</div>
+					</div>
+				</div>
+				<div class="carousel-arrow left" onclick="slideCarousel('featuredAuthorsTrack', -1)">
+					<i class="fas fa-chevron-left"></i>
+				</div>
+				<div class="carousel-arrow right" onclick="slideCarousel('featuredAuthorsTrack', 1)">
+					<i class="fas fa-chevron-right"></i>
+				</div>
+			</div>
+		</div>
+
+		<div th:if="${#lists.isEmpty(mostProlificAuthors)}" class="empty-state">
+			<h3><i class="fas fa-feather-alt"></i> No Authors Available</h3>
+			<p>Our catalog is growing! Come back soon to discover new authors.</p>
+		</div>
+	</section>
+
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+
+
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; &copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script>
+		// Particles Animation
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particle.style.animationDuration = (Math.random() * 3 + 6) + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+		document.addEventListener('DOMContentLoaded', createParticles);
+
+		// Carousel functionality
+		let currentSlide = {
+			featuredAuthorsTrack: 0
+		};
+
+		function slideCarousel(trackId, direction) {
+			const track = document.getElementById(trackId);
+			if (!track || !track.children.length) return;
+
+			const cards = track.children;
+			const cardWidth = cards[0].offsetWidth + 32; 
+			const visibleCards = Math.floor(track.parentElement.offsetWidth / cardWidth);
+			const maxSlide = Math.max(0, cards.length - visibleCards);
+
+			currentSlide[trackId] = (currentSlide[trackId] || 0) + direction;
+
+			if (currentSlide[trackId] < 0) {
+				currentSlide[trackId] = 0;
+			} else if (currentSlide[trackId] > maxSlide) {
+				currentSlide[trackId] = maxSlide;
+			}
+
+			const translateX = -currentSlide[trackId] * cardWidth;
+			track.style.transform = `translateX(${translateX}px)`;
+		}
+
+		// Touch/swipe support for mobile
+		let startX = 0;
+		let currentX = 0;
+		let isDragging = false;
+
+		document.addEventListener('touchstart', function (e) {
+			startX = e.touches[0].clientX;
+			isDragging = true;
+		});
+
+		document.addEventListener('touchmove', function (e) {
+			if (!isDragging) return;
+			currentX = e.touches[0].clientX;
+		});
+
+		document.addEventListener('touchend', function (e) {
+			if (!isDragging) return;
+			isDragging = false;
+
+			const diffX = startX - currentX;
+			const threshold = 50;
+
+			if (Math.abs(diffX) > threshold) {
+				const direction = diffX > 0 ? 1 : -1;
+				const carouselSection = e.target.closest('.carousel-section');
+				if (carouselSection) {
+					const track = carouselSection.querySelector('.carousel-track');
+					if (track) {
+						slideCarousel(track.id, direction);
+					}
+				}
+			}
+		});
+
+		// Keyboard navigation
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+				const direction = e.key === 'ArrowLeft' ? -1 : 1;
+				const focusedElement = document.activeElement;
+				const carouselSection = focusedElement.closest('.carousel-section');
+
+				if (carouselSection) {
+					const track = carouselSection.querySelector('.carousel-track');
+					if (track) {
+						slideCarousel(track.id, direction);
+					}
+				}
+			}
+		});
+
+		// Smooth scrolling for anchor links
+		document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+			anchor.addEventListener('click', function (e) {
+				e.preventDefault();
+				const target = document.querySelector(this.getAttribute('href'));
+				if (target) {
+					target.scrollIntoView({
+						behavior: 'smooth',
+						block: 'start'
+					});
+				}
+			});
+		});
+
+		// Performance optimization - pause animations when not visible
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+					entry.target.style.animationPlayState = 'running';
+				} else {
+					entry.target.style.animationPlayState = 'paused';
+				}
+			});
+		});
+
+		// Observe all animated elements
+		document.addEventListener('DOMContentLoaded', function () {
+			const animatedElements = document.querySelectorAll('.particle, .author-card');
+			animatedElements.forEach(el => observer.observe(el));
+		});
+
+
+		// Reviews dropdown toggle
+		document.addEventListener('DOMContentLoaded', function () {
+
+
+			const reviewsBtn = document.getElementById('reviews-btn');
+			const reviewsDropdown = document.getElementById('reviews-dropdown');
+			const mainContent = document.querySelector('.main-content');
+
+			if (reviewsBtn) {
+				reviewsBtn.addEventListener('click', function () {
+					reviewsDropdown.classList.toggle('open');
+					mainContent.classList.toggle('shifted');
+				});
+			}
+
+			// Close dropdown when clicking outside
+			document.addEventListener('click', function (event) {
+				if (!reviewsBtn.contains(event.target) && !reviewsDropdown.contains(event.target)) {
+					reviewsDropdown.classList.remove('open');
+					mainContent.classList.remove('shifted');
+				}
+				console.log('Dropdown opened');
+				console.log('Books found:', document.querySelectorAll('.review-item').length);
+			});
+		});
+
+	</script>
+</body>
+
+</html>

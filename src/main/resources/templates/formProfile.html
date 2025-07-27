@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Manage Profile</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/formProfile.css" />
+
+</head>
+
+<body>
+
+	<div class="particles" id="particles">
+		<div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+		<div class="particle" style="left: 20%; animation-delay: 1s;"></div>
+		<div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+		<div class="particle" style="left: 40%; animation-delay: 3s;"></div>
+		<div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+		<div class="particle" style="left: 60%; animation-delay: 1.5s;"></div>
+		<div class="particle" style="left: 70%; animation-delay: 2.5s;"></div>
+		<div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+		<div class="particle" style="left: 90%; animation-delay: 0.5s;"></div>
+	</div>
+	<!-- Header -->
+	<header>
+		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="/">
+					<i class="fas fa-book-open me-2"></i>SiwBooks
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<div class="nav-wrapper">
+						<ul class="navbar-nav">
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/books">📖 BookShelf</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link" href="/authors">✍️ Authors</a>
+							</li>
+							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
+								<a class="nav-link reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
+							</li>
+
+							<!-- Admin -->
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexBooks}">📚 Manage Books</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
+							</li>
+							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+								<a class="nav-link reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
+							</li>
+							<!-- User -->
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" href="/myReviews">📝 MyReviews</a>
+							</li>
+							<li class="nav-item" sec:authorize="isAuthenticated() and !hasAuthority('ADMIN')">
+								<a class="nav-link" th:href="@{/profile/manage}">👤 Profile</a>
+							</li>
+							<!-- Guest -->
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/register">📝 Sign Up</a>
+							</li>
+							<li class="nav-item" sec:authorize="!isAuthenticated()">
+								<a class="nav-link" href="/login">🔐 Log in</a>
+							</li>
+							<!-- Logout -->
+							<li class="nav-item" sec:authorize="isAuthenticated()">
+								<a class="nav-link" href="/logout">🚪 Logout</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<!-- Search bar -->
+				<div class="search-cart">
+					<form class="search-box d-flex" action="/search" method="get">
+						<input type="search" name="keyword" class="search-input"
+							placeholder="🔍 Search books or authors..." required minlength="2">
+						<button type="submit" class="search-btn">
+							<i class="fas fa-search"></i>
+						</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Reviews Dropdown -->
+		<div class="reviews-dropdown" id="reviews-dropdown">
+			<button class="carousel-arrow left" id="arrow-left">
+				<i class="fas fa-chevron-left"></i>
+			</button>
+			<button class="carousel-arrow right" id="arrow-right">
+				<i class="fas fa-chevron-right"></i>
+			</button>
+
+			<div class="reviews-container" id="reviews-container">
+				<div class="review-item" th:each="book : ${books}">
+					<div class="cover">
+						<img th:if="${book.coverImage != null}" th:src="@{'/book/cover/' + ${book.id}}" />
+						<div th:unless="${book.coverImage != null}" class="no-cover">📖</div>
+					</div>
+					<h4 th:text="${book.title}">Book Title</h4>
+					<a th:href="@{'/books/' + ${book.id} + '/reviews'}">Go to Review</a>
+				</div>
+			</div>
+		</div>
+
+	</header>
+
+	<div class="profile-container">
+		<div class="profile-wrapper">
+			<h1 class="profile-title">Manage Your Profile</h1>
+
+			<!-- Success Messages -->
+			<div th:if="${param.success}" class="message success">
+				Profile updated successfully!
+			</div>
+
+			<div th:if="${profileSuccess}" class="message success" th:text="${profileSuccess}">
+				Profile updated successfully!
+			</div>
+
+			<div th:if="${noChanges}" class="message info" th:text="${noChanges}">
+				No changes detected
+			</div>
+
+			<!-- FORM 1: Personal Information -->
+			<form class="profile-form" th:action="@{/profile}" method="post" th:object="${user}">
+				<fieldset>
+					<legend>Personal Information</legend>
+
+					<div class="form-group">
+						<label for="name">Name:</label>
+						<input type="text" th:field="*{name}" class="form-input" id="name" required
+							placeholder="Enter your name" />
+						<div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error">Name error</div>
+					</div>
+
+					<div class="form-group">
+						<label for="surname">Surname:</label>
+						<input type="text" th:field="*{surname}" class="form-input" id="surname" required
+							placeholder="Enter your surname" />
+						<div th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}" class="error">Surname error
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="email">Email:</label>
+						<input type="email" th:field="*{email}" class="form-input" id="email" required
+							placeholder="Enter your email address" />
+						<div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error">Email error</div>
+					</div>
+
+					<div class="button-group">
+						<button type="submit" class="submit-button">
+							✨ Update Personal Info ✨
+						</button>
+					</div>
+				</fieldset>
+			</form>
+
+			<hr>
+
+			<!-- FORM 2: Change Credentials -->
+			<form class="profile-form" th:action="@{/profile/credentials}" method="post">
+				<fieldset>
+					<legend>Change Credentials</legend>
+
+					<!-- Current Username (readonly)-->
+					<div class="form-group">
+						<label for="currentUsername">Current Username:</label>
+						<input type="text" th:value="${credentials.username}" class="form-input" id="currentUsername" readonly />
+					</div> 
+
+					<!-- New Username (optional) -->
+					<div class="form-group">
+						<label for="newUsername">New Username (leave empty to keep current):</label>
+						<input type="text" name="newUsername" id="newUsername" class="form-input" 
+							placeholder="Enter new username or leave empty" />
+						<div th:if="${usernameError}" class="error" th:text="${usernameError}">Username error</div>
+					</div>
+
+					<!-- New Password (optional)-->
+					<div class="form-group">
+						<label for="newPassword">New Password (leave empty to keep current):</label>
+						<input type="password" name="newPassword" id="newPassword" class="form-input"
+							placeholder="Enter new password or leave empty" />
+					</div>
+
+					<div class="form-group">
+						<label for="confirmNewPassword">Confirm New Password:</label>
+						<input type="password" name="confirmNewPassword" id="confirmNewPassword" class="form-input"
+							placeholder="Confirm new password" />
+						<div th:if="${passwordError}" class="error" th:text="${passwordError}">Password error</div>
+					</div>
+
+					<!-- General Errors -->
+					<div th:if="${updateError}" class="error" th:text="${updateError}">Update error</div>
+
+					<div class="button-group">
+						<button type="submit" class="submit-button">
+							🔒 Update Credentials 🔒
+						</button>
+					</div>
+
+					<p class="warning">
+						<strong>Note:</strong> After changing your credentials, you will be automatically logged out
+						and need to log in again with your new credentials.
+					</p>
+				</fieldset>
+			</form>
+
+			<a th:href="@{/}" class="back-link">
+				<i class="fas fa-arrow-left"></i> Back to Home
+			</a>
+		</div>
+	</div>
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<div class="footer-section">
+				<h3>SiwBooks</h3>
+				<p>Your trusted literary review </p>
+				<p>
+					platform—where every book
+				</p>
+				<p>
+					finds its voice and every
+				</p>
+				<p>
+					reader their next
+					adventure.
+				</p>
+			</div>
+			<div class="footer-section">
+				<h3>Explore</h3>
+				<ul>
+					<li><a href="/books">BookShelf</a></li>
+					<li><a href="/authors">Authors</a></li>
+					<li><a href="/register">Sign Up</a></li>
+					<li><a href="/login">Log in</a></li>
+				</ul>
+			</div>
+			<div class="footer-section">
+				<h3>Contact Us</h3>
+				<ul>
+					<li>📧 info@siwbooks.it</li>
+					<li><i class="fas fa-phone"></i> +12 34 5678901</li>
+					<li><i class="fas fa-map-marker-alt"></i> BookCity, Literary Lane</li>
+				</ul>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<p>&copy; 2025 SiwBooks. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script>
+		// Reviews dropdown toggle -
+		document.addEventListener('DOMContentLoaded', function () {
+			console.log('DOM Content Loaded, initializing dropdown...');
+
+			//Inizialize
+			function initializeDropdown() {
+				const reviewsBtn = document.querySelector('.reviews-btn');
+				const reviewsDropdown = document.getElementById('reviews-dropdown');
+
+				console.log('Reviews button found:', !!reviewsBtn);
+				console.log('Reviews dropdown found:', !!reviewsDropdown);
+
+				if (reviewsBtn && reviewsDropdown) {
+					console.log('Both elements found, adding click listener');
+
+					// Remove
+					reviewsBtn.removeEventListener('click', handleReviewsClick);
+
+					// New listener
+					reviewsBtn.addEventListener('click', handleReviewsClick);
+
+					function handleReviewsClick(e) {
+						e.preventDefault();
+						e.stopPropagation();
+
+						console.log('Reviews button clicked!');
+
+						const isCurrentlyOpen = reviewsDropdown.classList.contains('open');
+						reviewsDropdown.classList.toggle('open');
+
+						console.log('Dropdown toggled. Now open:', !isCurrentlyOpen);
+					}
+
+					// Close dropdown when clicking outside
+					document.addEventListener('click', function (event) {
+						if (!reviewsBtn.contains(event.target) && !reviewsDropdown.contains(event.target)) {
+							reviewsDropdown.classList.remove('open');
+							console.log('Dropdown closed by outside click');
+						}
+					});
+
+					return true; 
+				}
+
+				return false; 
+			}
+
+			// First try
+			if (!initializeDropdown()) {
+				console.log('First attempt failed, trying again after delay...');
+
+				// Second try
+				setTimeout(function () {
+					if (!initializeDropdown()) {
+						console.log('Second attempt failed, trying with window load...');
+
+						// Last try
+						window.addEventListener('load', function () {
+							setTimeout(initializeDropdown, 100);
+						});
+					}
+				}, 300);
+			}
+		});
+
+		// Reviews Carousel
+		let reviewsCurrentIndex = 0;
+		const reviewsContainer = document.getElementById('reviews-container');
+		const reviewItems = document.querySelectorAll('.review-item');
+		const totalReviewItems = reviewItems.length;
+
+		function updateReviewsCarousel() {
+			const translateX = -reviewsCurrentIndex * (280);
+			reviewsContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		document.getElementById('arrow-left').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+		document.getElementById('arrow-right').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+
+
+		// Particles Generation
+		function createParticles() {
+			const particlesContainer = document.getElementById('particles');
+			const particleCount = 50;
+
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				particle.style.left = Math.random() * 100 + '%';
+				particle.style.top = Math.random() * 100 + '%';
+				particle.style.animationDelay = Math.random() * 6 + 's';
+				particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+				particlesContainer.appendChild(particle);
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', createParticles);
+
+
+		document.querySelectorAll('.form-input').forEach(input => {
+			input.addEventListener('focus', function () {
+				this.style.transform = 'translateY(-2px)';
+			});
+
+			input.addEventListener('blur', function () {
+				this.style.transform = 'translateY(0)';
+			});
+		});
+
+		document.querySelectorAll('.submit-button, .back-link').forEach(button => {
+			button.addEventListener('mouseenter', function () {
+				this.style.transform = 'translateY(-3px)';
+			});
+
+			button.addEventListener('mouseleave', function () {
+				this.style.transform = 'translateY(0)';
+			});
+		});
+
+		document.querySelector('form[th\\:action*="/profile"]').addEventListener('submit', function (e) {
+			const name = document.getElementById('name').value.trim();
+			const surname = document.getElementById('surname').value.trim();
+			const email = document.getElementById('email').value.trim();
+
+			if (!name) {
+				e.preventDefault();
+				alert('Name is required!');
+				return;
+			}
+
+			if (!surname) {
+				e.preventDefault();
+				alert('Surname is required!');
+				return;
+			}
+
+			if (!email || !email.includes('@')) {
+				e.preventDefault();
+				alert('Please enter a valid email address!');
+				return;
+			}
+		});
+
+
+		document.querySelector('form[th\\:action*="/credentials"]').addEventListener('submit', function (e) {
+			const newPassword = document.querySelector('input[name="newPassword"]').value;
+			const confirmPassword = document.querySelector('input[name="confirmNewPassword"]').value;
+			const newUsername = document.querySelector('input[name="newUsername"]').value.trim();
+
+			if (newPassword && newPassword !== confirmPassword) {
+				e.preventDefault();
+				alert('New password and confirmation do not match!');
+				return;
+			}
+
+			if (!newUsername && !newPassword) {
+				const confirm = window.confirm('No changes detected. Are you sure you want to proceed?');
+				if (!confirm) {
+					e.preventDefault();
+					return;
+				}
+			}
+
+			if (newPassword && newPassword.length < 6) {
+				e.preventDefault();
+				alert('New password must be at least 6 characters long!');
+				return;
+			}
+
+			if (newUsername && newUsername.length < 3) {
+				e.preventDefault();
+				alert('Username must be at least 3 characters long!');
+				return;
+			}
+		});
+
+		function typeWriter(element, text, speed = 100) {
+			element.innerHTML = '';
+			let i = 0;
+			function type() {
+				if (i < text.length) {
+					element.innerHTML += text.charAt(i);
+					i++;
+					setTimeout(type, speed);
+				}
+			}
+			type();
+		}
+
+		window.addEventListener('load', function () {
+			document.body.style.opacity = '0';
+			document.body.style.transition = 'opacity 0.5s ease-in-out';
+			setTimeout(() => {
+				document.body.style.opacity = '1';
+			}, 100);
+		});
+
+		let formChanged = false;
+		document.querySelectorAll('.form-input').forEach(input => {
+			input.addEventListener('input', function () {
+				formChanged = true;
+			});
+		});
+
+		document.querySelector('.back-link').addEventListener('click', function (e) {
+			if (formChanged) {
+				const confirm = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+				if (!confirm) {
+					e.preventDefault();
+				}
+			}
+		});
+
+		
+	</script>
+</body>
+
+</html>
