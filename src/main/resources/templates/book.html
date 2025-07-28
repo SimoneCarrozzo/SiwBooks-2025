@@ -45,7 +45,7 @@
 							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
 								<a class="nav-link" href="/authors">✍️ Authors</a>
 							</li>
-							<!-- Reviews unico per tutti -->
+							<!-- Reviews -->
 							<li class="nav-item" sec:authorize="!hasAuthority('ADMIN')">
 								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Reviews</a>
 							</li>
@@ -57,7 +57,7 @@
 							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
 								<a class="nav-link" th:href="@{/admin/indexAuthors}">🛠️ Manage Authors</a>
 							</li>
-							<!-- SEPARATO: Reviews per admin -->
+							<!-- Reviews admin -->
 							<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
 								<a class="nav-link" id="reviews-btn" style="cursor: pointer;">⭐ Manage Reviews</a>
 							</li>
@@ -150,7 +150,7 @@
 						</div>
 						<ul style="list-style: none; padding: 0; margin: 0; margin-left: 46px;">
 							<li th:each="a : ${book.authors}" style="margin-bottom: 0.5rem;">
-								<a th:href="@{'/authors/' + ${a.id}}" th:text="${a.name + ' ' + a.surname}"></a>
+								<a th:text="${a.name + ' ' + a.surname}"></a>
 							</li>
 						</ul>
 					</div>

@@ -26,7 +26,6 @@
 
 	<!-- Header -->
 	<header>
-		<!--		<h1><i class="fas fa-book-open"></i> Magical Library</h1>-->
 		<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
 			<div class="container-fluid">
 				<a class="navbar-brand" href="/">
@@ -251,7 +250,7 @@
 			if (!track || !track.children.length) return;
 
 			const cards = track.children;
-			const cardWidth = cards[0].offsetWidth + 32; 
+			const cardWidth = cards[0].offsetWidth + 32;
 			const visibleCards = Math.floor(track.parentElement.offsetWidth / cardWidth);
 			const maxSlide = Math.max(0, cards.length - visibleCards);
 
@@ -373,6 +372,27 @@
 				console.log('Dropdown opened');
 				console.log('Books found:', document.querySelectorAll('.review-item').length);
 			});
+		});
+
+		// Reviews Carousel
+		let reviewsCurrentIndex = 0;
+		const reviewsContainer = document.getElementById('reviews-container');
+		const reviewItems = document.querySelectorAll('.review-item');
+		const totalReviewItems = reviewItems.length;
+
+		function updateReviewsCarousel() {
+			const translateX = -reviewsCurrentIndex * (280);
+			reviewsContainer.style.transform = `translateX(${translateX}px)`;
+		}
+
+		document.getElementById('arrow-left').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex - 1 + totalReviewItems) % totalReviewItems;
+			updateReviewsCarousel();
+		});
+
+		document.getElementById('arrow-right').addEventListener('click', function () {
+			reviewsCurrentIndex = (reviewsCurrentIndex + 1) % totalReviewItems;
+			updateReviewsCarousel();
 		});
 
 	</script>
